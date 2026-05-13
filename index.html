@@ -13,20 +13,25 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0c0b0a;
-  --surface: #16140f;
-  --surface-elev: #1f1c16;
-  --border: #2a2620;
-  --border-soft: #1f1c16;
-  --text: #f5f1e8;
-  --text-2: #8a8478;
-  --text-3: #5a5650;
-  --accent: #d4a574;
-  --accent-bright: #e8b884;
-  --warn: #d97757;
-  --over: #e85a3a;
-  --ahead: #8eb0a6;
-  --ahead-soft: rgba(142, 176, 166, 0.12);
+  /* warm paper / aged ivory theme */
+  --bg: #ece3cc;
+  --surface: #f4ecd5;
+  --surface-elev: #fbf5e2;
+  --border: #ccbd9d;
+  --border-soft: #ddd1b3;
+  --text: #2a2520;
+  --text-2: #6e6557;
+  --text-3: #a89c85;
+  --accent: #9a611f;
+  --accent-bright: #b97935;
+  --accent-rgb: 154, 97, 31;
+  --accent-bright-rgb: 185, 121, 53;
+  --warn: #b05633;
+  --warn-rgb: 176, 86, 51;
+  --over: #983616;
+  --over-rgb: 152, 54, 22;
+  --ahead: #557868;
+  --ahead-rgb: 85, 120, 104;
 
   --font-jp: 'Zen Kaku Gothic New', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
@@ -44,8 +49,9 @@ html, body {
 
 body {
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(212, 165, 116, 0.07), transparent 70%),
-    url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.94 0 0 0 0 0.91 0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    radial-gradient(ellipse 100% 65% at 50% 0%, rgba(255, 248, 225, 0.55), transparent 70%),
+    radial-gradient(ellipse 80% 50% at 50% 100%, rgba(154, 97, 31, 0.06), transparent 70%),
+    url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.22 0 0 0 0 0.17 0 0 0 0 0.1 0 0 0 0.055 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   background-attachment: fixed;
 }
 
@@ -159,9 +165,10 @@ textarea.activities-input::placeholder { color: var(--text-3); }
   display: block; width: 100%;
   margin-top: 2.5rem; padding: 1.15rem;
   background: var(--accent); border: none; border-radius: 3px;
-  color: #1a1612; font-family: var(--font-jp); font-weight: 700;
+  color: var(--surface-elev); font-family: var(--font-jp); font-weight: 700;
   font-size: 1.05rem; letter-spacing: 0.06em;
   cursor: pointer;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
   transition: background 0.15s, transform 0.05s, opacity 0.15s;
   touch-action: manipulation;
 }
@@ -169,6 +176,7 @@ textarea.activities-input::placeholder { color: var(--text-3); }
 .btn-primary:active:not(:disabled) { transform: translateY(1px); }
 .btn-primary:disabled {
   background: var(--border); color: var(--text-3); cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* ───── running screen ───── */
@@ -207,18 +215,18 @@ textarea.activities-input::placeholder { color: var(--text-3); }
   color: var(--text-2);
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--surface);
+  background: var(--surface-elev);
   transition: color 0.3s, border-color 0.3s, background 0.3s;
 }
 .delta-badge.ahead {
   color: var(--ahead);
-  border-color: rgba(142, 176, 166, 0.35);
-  background: var(--ahead-soft);
+  border-color: rgba(var(--ahead-rgb), 0.4);
+  background: rgba(var(--ahead-rgb), 0.10);
 }
 .delta-badge.behind {
   color: var(--warn);
-  border-color: rgba(217, 119, 87, 0.35);
-  background: rgba(217, 119, 87, 0.06);
+  border-color: rgba(var(--warn-rgb), 0.4);
+  background: rgba(var(--warn-rgb), 0.08);
 }
 .delta-badge .jp {
   font-family: var(--font-jp); font-size: 0.88rem;
@@ -286,22 +294,40 @@ textarea.activities-input::placeholder { color: var(--text-3); }
   grid-template-columns: 2rem 1fr auto;
   gap: 0.9rem; padding: 0.85rem 1rem;
   background: var(--surface-elev);
+  border: 1px solid var(--border-soft);
   border-radius: 3px;
   align-items: start;
   overflow: hidden;
-  transition: opacity 0.3s, background 0.3s;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 1px 2px rgba(60, 45, 25, 0.04);
+  transition: opacity 0.3s, background 0.3s, border-color 0.2s;
 }
-.timeline-block + .timeline-block { margin-top: 4px; }
+.timeline-block + .timeline-block { margin-top: 6px; }
 
-.timeline-block.done { opacity: 0.45; }
+.timeline-block.done { opacity: 0.55; }
+
+/* tappable non-current blocks */
+.timeline-block:not(.current) {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.timeline-block:not(.current):hover {
+  background: #fefaeb;
+  border-color: var(--border);
+}
+.timeline-block.done:hover { opacity: 0.75; }
+.timeline-block:not(.current):active { transform: scale(0.997); }
 
 .timeline-block.current {
   background:
     linear-gradient(90deg,
-      rgba(212,165,116,0.08) 0%,
-      rgba(212,165,116,0.025) 50%,
+      rgba(var(--accent-rgb), 0.08) 0%,
+      rgba(var(--accent-rgb), 0.025) 50%,
       transparent 100%),
     var(--surface-elev);
+  border-color: rgba(var(--accent-rgb), 0.3);
+  box-shadow: 0 2px 6px rgba(var(--accent-rgb), 0.12);
 }
 .timeline-block.current::before {
   content: "";
@@ -312,15 +338,45 @@ textarea.activities-input::placeholder { color: var(--text-3); }
   z-index: 2;
 }
 
+/* "predicted now" indicator on the block where the schedule says you should be */
+.timeline-block.scheduled-target {
+  outline: 1.5px solid rgba(var(--warn-rgb), 0.55);
+  outline-offset: -1.5px;
+  background:
+    linear-gradient(90deg, transparent 40%, rgba(var(--warn-rgb), 0.06) 100%),
+    var(--surface-elev);
+}
+.timeline-block.scheduled-target:hover {
+  background:
+    linear-gradient(90deg, transparent 40%, rgba(var(--warn-rgb), 0.1) 100%),
+    #fefaeb;
+}
+.timeline-block.scheduled-target .marker { color: var(--warn); }
+.timeline-block.scheduled-target .schedule-hint {
+  display: inline-block;
+  font-family: var(--font-jp);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: var(--warn);
+  margin-left: 0.55rem;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid rgba(var(--warn-rgb), 0.45);
+  border-radius: 999px;
+  background: rgba(var(--warn-rgb), 0.08);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.timeline-block .schedule-hint { display: none; }
+
 /* progress fill from top of current block down to "now" — the bottom edge IS the now line */
 .timeline-block .progress-fill-overlay {
   position: absolute;
   left: 0; right: 0; top: 0;
   background: linear-gradient(180deg,
-    rgba(212,165,116,0.13),
-    rgba(212,165,116,0.04));
-  border-bottom: 1.5px solid var(--accent-bright);
-  box-shadow: 0 1px 10px rgba(232, 184, 132, 0.35);
+    rgba(var(--accent-rgb), 0.18),
+    rgba(var(--accent-rgb), 0.08));
+  border-bottom: 1.5px solid var(--accent);
+  box-shadow: 0 1px 6px rgba(var(--accent-rgb), 0.25);
   pointer-events: none;
   z-index: 0;
   transition: height 0.25s linear;
@@ -331,20 +387,20 @@ textarea.activities-input::placeholder { color: var(--text-3); }
   right: 0.5rem; bottom: -3.5px;
   width: 7px; height: 7px;
   border-radius: 50%;
-  background: var(--accent-bright);
-  box-shadow: 0 0 8px rgba(232, 184, 132, 0.9);
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.6);
   z-index: 1;
 }
 .timeline-block .progress-fill-overlay.over {
   background: linear-gradient(180deg,
-    rgba(232,90,58,0.18),
-    rgba(232,90,58,0.06));
+    rgba(var(--over-rgb), 0.22),
+    rgba(var(--over-rgb), 0.10));
   border-bottom-color: var(--over);
-  box-shadow: 0 1px 10px rgba(232, 90, 58, 0.4);
+  box-shadow: 0 1px 6px rgba(var(--over-rgb), 0.3);
 }
 .timeline-block .progress-fill-overlay.over::after {
   background: var(--over);
-  box-shadow: 0 0 8px rgba(232, 90, 58, 0.9);
+  box-shadow: 0 0 6px rgba(var(--over-rgb), 0.7);
 }
 
 .timeline-block > .marker,
@@ -392,29 +448,46 @@ textarea.activities-input::placeholder { color: var(--text-3); }
   background: var(--surface-elev); border: 1px solid var(--border);
   color: var(--text); font-family: var(--font-jp); font-size: 0.98rem;
   border-radius: 3px; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(60, 45, 25, 0.04);
   transition: all 0.15s; touch-action: manipulation;
   letter-spacing: 0.04em;
 }
 .btn-ctrl:hover:not(:disabled) {
   border-color: var(--accent); color: var(--accent);
+  background: #fefaeb;
 }
 .btn-ctrl:active:not(:disabled) { transform: translateY(1px); }
 .btn-ctrl:disabled {
   opacity: 0.35; cursor: not-allowed;
 }
 .btn-ctrl.primary {
-  background: var(--accent); border-color: var(--accent); color: #1a1612;
+  background: var(--accent); border-color: var(--accent); color: var(--surface-elev);
   font-weight: 700;
+  box-shadow: 0 1px 2px rgba(60, 45, 25, 0.12);
 }
-.btn-ctrl.primary:hover:not(:disabled) { background: var(--accent-bright); color: #1a1612; }
+.btn-ctrl.primary:hover:not(:disabled) {
+  background: var(--accent-bright); border-color: var(--accent-bright);
+  color: var(--surface-elev);
+}
 .btn-ctrl.large {
   padding: 1.25rem; font-size: 1.1rem; letter-spacing: 0.08em;
+}
+
+@keyframes attention-pulse {
+  0%, 100% { box-shadow: 0 1px 2px rgba(60, 45, 25, 0.12), 0 0 0 0 rgba(var(--accent-rgb), 0); }
+  50% { box-shadow: 0 1px 2px rgba(60, 45, 25, 0.12), 0 0 22px 3px rgba(var(--accent-rgb), 0.35); }
+}
+.btn-ctrl.attention {
+  animation: attention-pulse 1.6s ease-in-out infinite;
 }
 .btn-ctrl.danger {
   border-color: var(--border);
   color: var(--text-2);
 }
-.btn-ctrl.danger:hover:not(:disabled) { border-color: var(--warn); color: var(--warn); }
+.btn-ctrl.danger:hover:not(:disabled) {
+  border-color: var(--warn); color: var(--warn);
+  background: rgba(var(--warn-rgb), 0.05);
+}
 
 /* ───── responsive ───── */
 @media (max-width: 700px) {
@@ -522,6 +595,7 @@ let pausedAt = null;
 let totalPauseMs = 0;
 let wakeLock = null;
 let lastRenderedActualIdx = -1;
+let lastScheduledIdx = -1;
 let actualPhaseIdx = 0;            // user's actual current phase
 let phaseAdvanceTimes = [];        // elapsed ms at which each phase was advanced to
 
@@ -649,7 +723,7 @@ function getAbsoluteTime(phaseMs) {
   return new Date(startTime + pauseAccum() + phaseMs);
 }
 
-function currentPhaseIndex(phases, elapsed) {
+function scheduledPhaseIndex(phases, elapsed) {
   if (elapsed < 0) return 0;
   for (let i = 0; i < phases.length; i++) {
     if (elapsed < phases[i].endMs) return i;
@@ -731,21 +805,47 @@ function renderSchedule(phases, idx) {
     }
     inner += `
       <span class="marker">${marker}</span>
-      <span class="item-name">${escapeHtml(p.name)}</span>
+      <span class="item-name">${escapeHtml(p.name)}<span class="schedule-hint">← 予定上は今ここ</span></span>
       <span class="item-meta">
         <span class="item-alloc">${allocMin}分</span>
         <span class="item-time">${formatHM(start)} → ${formatHM(end)}</span>
       </span>
     `;
     block.innerHTML = inner;
+
+    // Tap any non-current block to jump there
+    if (i !== idx) {
+      block.addEventListener('click', () => jumpToPhase(i));
+    }
+
     scheduleList.appendChild(block);
   });
 }
 
+function jumpToPhase(targetIdx) {
+  if (mode !== 'running') return;
+  if (targetIdx === actualPhaseIdx) return;
+  if (targetIdx < 0 || targetIdx >= activities.length) return;
+
+  const elapsed = getElapsedMs();
+  if (targetIdx > actualPhaseIdx) {
+    // forward jump: record advance times for all skipped phases as "now"
+    for (let i = actualPhaseIdx + 1; i <= targetIdx; i++) {
+      phaseAdvanceTimes[i] = elapsed;
+    }
+  } else {
+    // backward jump: trim and re-set advance time to now
+    phaseAdvanceTimes = phaseAdvanceTimes.slice(0, targetIdx);
+    phaseAdvanceTimes[targetIdx] = elapsed;
+  }
+  actualPhaseIdx = targetIdx;
+  lastRenderedActualIdx = -1;
+  lastScheduledIdx = -1;
+  tick();
+}
+
 function updateNowMarker() {
   if (mode !== 'running') return;
-  const overlay = scheduleList.querySelector('.timeline-block.current .progress-fill-overlay');
-  if (!overlay) return;
 
   const phases = getPhases();
   const idx = actualPhaseIdx;
@@ -755,8 +855,23 @@ function updateNowMarker() {
   const progress = Math.min(1, timeOnPhase / phase.durationMs);
   const over = timeOnPhase > phase.durationMs;
 
-  overlay.style.height = `${progress * 100}%`;
-  overlay.classList.toggle('over', over);
+  // Update current block's fill overlay
+  const overlay = scheduleList.querySelector('.timeline-block.current .progress-fill-overlay');
+  if (overlay) {
+    overlay.style.height = `${progress * 100}%`;
+    overlay.classList.toggle('over', over);
+  }
+
+  // Update scheduled-target indicator (where the clock says we should be)
+  // Only show when user is behind and significantly so
+  const schedIdx = scheduledPhaseIndex(phases, elapsed);
+  const showHint = schedIdx > idx;
+  if (schedIdx !== lastScheduledIdx) {
+    scheduleList.querySelectorAll('.timeline-block').forEach((b, i) => {
+      b.classList.toggle('scheduled-target', showHint && i === schedIdx);
+    });
+    lastScheduledIdx = schedIdx;
+  }
 }
 
 function tick() {
@@ -837,13 +952,16 @@ function tick() {
   nextBtn.disabled = idx >= phases.length - 1;
   prevBtn.disabled = idx <= 0;
   nextBtn.textContent = (idx >= phases.length - 1) ? '最後のセクション' : '次へ進む';
+  // Pulse the next button when the current section is over its allocation
+  nextBtn.classList.toggle('attention', sectionRemainMs < 0 && !isPaused && !nextBtn.disabled);
 
   // ─ Re-render schedule blocks only when phase changes ─
   if (idx !== lastRenderedActualIdx) {
     renderSchedule(phases, idx);
     lastRenderedActualIdx = idx;
+    lastScheduledIdx = -1;  // force scheduled-target re-apply on fresh blocks
   }
-  // ─ Update the "now" marker position every tick ─
+  // ─ Update the "now" marker and scheduled-target every tick ─
   updateNowMarker();
 }
 
