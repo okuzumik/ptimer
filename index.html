@@ -104,15 +104,16 @@ body {
 
 textarea.activities-input {
   width: 100%; min-height: 200px;
-  background: var(--surface); border: 1px solid var(--border);
+  background: var(--surface-elev); border: 1px solid var(--border);
   border-radius: 3px; padding: 1.25rem 1.5rem;
   color: var(--text); font-family: var(--font-jp);
   font-size: 1rem; line-height: 1.7; resize: vertical;
-  transition: border-color 0.2s, background 0.2s;
+  box-shadow: 0 1px 2px rgba(60, 45, 25, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 textarea.activities-input:focus {
   outline: none; border-color: var(--accent);
-  background: var(--surface-elev);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
 }
 textarea.activities-input::placeholder { color: var(--text-3); }
 
@@ -129,15 +130,19 @@ textarea.activities-input::placeholder { color: var(--text-3); }
 }
 .activity-row .name { font-size: 1.02rem; line-height: 1.4; }
 .minutes-input {
-  width: 4.5rem; background: var(--surface);
+  width: 4.5rem; background: var(--surface-elev);
   border: 1px solid var(--border); border-radius: 3px;
   padding: 0.55rem 0.75rem; color: var(--text);
   font-family: var(--font-mono); font-size: 1rem;
   text-align: right; -moz-appearance: textfield;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .minutes-input::-webkit-outer-spin-button,
 .minutes-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.minutes-input:focus { outline: none; border-color: var(--accent); }
+.minutes-input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
+}
 .unit { color: var(--text-2); font-size: 0.9rem; }
 .delete-btn {
   background: transparent; border: none; color: var(--text-3);
@@ -182,6 +187,124 @@ textarea.activities-input::placeholder { color: var(--text-3); }
 /* ───── running screen ───── */
 .running { display: none; min-height: 100vh; padding: 0 2rem 2.5rem; }
 .running.active { display: flex; flex-direction: column; }
+
+/* ───── segment bar (full-talk overview at top) ───── */
+.segment-bar-wrapper {
+  max-width: 1100px;
+  width: 100%;
+  margin: 1.75rem auto 0;
+  padding: 0 0.25rem;
+}
+.segment-bar-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-en);
+  font-style: italic;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  padding: 0 0.5rem;
+}
+.segment-bar-meta .jp {
+  font-family: var(--font-jp); font-style: normal;
+  letter-spacing: 0.06em; color: var(--text-2);
+}
+.segment-bar {
+  position: relative;
+  display: flex;
+  height: 42px;
+  background: var(--surface-elev);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  overflow: visible;
+  box-shadow: 0 1px 2px rgba(60, 45, 25, 0.04);
+}
+.segment-bar-inner {
+  position: relative;
+  display: flex;
+  flex: 1;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.segment {
+  position: relative;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+  min-width: 22px;
+  border-right: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  padding: 0 0.55rem;
+  overflow: hidden;
+  font-family: var(--font-jp);
+  font-size: 0.74rem;
+  color: var(--text-3);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s;
+}
+.segment:last-child { border-right: none; }
+.segment:hover { background: rgba(var(--accent-rgb), 0.04); }
+.segment.done {
+  background: rgba(var(--accent-rgb), 0.13);
+  color: rgba(var(--accent-rgb), 0.85);
+}
+.segment.done:hover { background: rgba(var(--accent-rgb), 0.18); }
+.segment.current {
+  cursor: default;
+  color: var(--accent);
+  font-weight: 500;
+}
+.segment.current:hover { background: var(--surface-elev); }
+.segment-progress {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: rgba(var(--accent-rgb), 0.25);
+  border-right: 1.5px solid var(--accent);
+  pointer-events: none;
+  z-index: 0;
+  transition: width 0.25s linear;
+}
+.segment-progress.over {
+  background: rgba(var(--over-rgb), 0.3);
+  border-right-color: var(--over);
+}
+.segment-label {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.now-pointer {
+  position: absolute;
+  top: -7px; bottom: -7px;
+  width: 2px;
+  background: var(--accent);
+  z-index: 2;
+  transform: translateX(-1px);
+  transition: left 0.25s linear;
+  pointer-events: none;
+}
+.now-pointer::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.55);
+}
+.now-pointer.over { background: var(--over); }
+.now-pointer.over::before {
+  background: var(--over);
+  box-shadow: 0 0 6px rgba(var(--over-rgb), 0.55);
+}
 
 .current-phase { text-align: center; padding: 3rem 1rem 1.5rem; }
 .phase-meta {
@@ -270,18 +393,6 @@ textarea.activities-input::placeholder { color: var(--text-3); }
 }
 .readout-label .jp { font-family: var(--font-jp); font-style: normal; letter-spacing: 0.08em; }
 .readout.secondary .readout-label { margin-top: 0.6rem; font-size: 0.78rem; }
-
-.progress-track {
-  margin: 2rem auto 0; max-width: 560px;
-  height: 2px; background: var(--border); border-radius: 1px;
-  overflow: hidden; position: relative;
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
-  transition: width 0.5s linear;
-}
-.progress-fill.over { background: var(--over); }
 
 /* ───── schedule ───── */
 .schedule {
@@ -494,11 +605,14 @@ textarea.activities-input::placeholder { color: var(--text-3); }
   .setup { padding: 2rem 1.25rem 4rem; }
   .topbar { padding: 1rem 1.25rem; }
   .running { padding: 0 1.25rem 1.5rem; }
-  .current-phase { padding: 2rem 0.5rem 1rem; }
+  .current-phase { padding: 1.5rem 0.5rem 1rem; }
   .btn-ctrl { padding: 0.85rem 0.9rem; font-size: 0.95rem; }
   .btn-ctrl.large { padding: 1.1rem; font-size: 1.05rem; }
   .timeline-block { padding: 0.85rem 0.7rem; gap: 0.7rem; }
   .timeline-block { grid-template-columns: 1.5rem 1fr auto; }
+  .segment-bar { height: 36px; }
+  .segment { font-size: 0.7rem; padding: 0 0.4rem; min-width: 18px; }
+  .segment-bar-wrapper { margin-top: 1rem; }
 }
 
 @media (orientation: landscape) and (max-height: 600px) {
@@ -545,6 +659,18 @@ input[type=number] { -moz-appearance: textfield; }
 
 <!-- ───── RUNNING SCREEN ───── -->
 <main class="running" id="running-screen">
+
+  <div class="segment-bar-wrapper">
+    <div class="segment-bar-meta">
+      <span>Talk Overview <span class="jp">— 全体の進捗</span></span>
+      <span id="segment-bar-position"></span>
+    </div>
+    <div class="segment-bar" id="segment-bar">
+      <div class="segment-bar-inner" id="segment-bar-inner"></div>
+      <div class="now-pointer" id="now-pointer" style="left: 0%;"></div>
+    </div>
+  </div>
+
   <div class="current-phase">
     <div class="phase-meta">
       <span class="phase-counter" id="phase-counter">PHASE 01 / 01</span>
@@ -563,10 +689,6 @@ input[type=number] { -moz-appearance: textfield; }
         <div class="readout-value" id="total-remaining">00:00</div>
         <div class="readout-label"><span class="jp">全体残り</span></div>
       </div>
-    </div>
-
-    <div class="progress-track">
-      <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
     </div>
   </div>
 
@@ -612,7 +734,9 @@ const wallClock    = $('wall-clock');
 const phaseStatus  = $('phase-status');
 const remainingEl   = $('remaining');
 const totalRemainEl = $('total-remaining');
-const progressFill  = $('progress-fill');
+const segmentBarInner = $('segment-bar-inner');
+const segmentBarPos = $('segment-bar-position');
+const nowPointer    = $('now-pointer');
 const phaseCounter = $('phase-counter');
 const currentName  = $('current-name');
 const deltaBadge   = $('delta-badge');
@@ -844,6 +968,62 @@ function jumpToPhase(targetIdx) {
   tick();
 }
 
+// ───── segment bar (top overview) ─────
+function renderSegmentBar(phases, idx) {
+  segmentBarInner.innerHTML = '';
+  phases.forEach((p, i) => {
+    const allocMin = activities[i].minutes;
+    const seg = document.createElement('div');
+    seg.className = 'segment';
+    seg.style.flexGrow = allocMin;
+    seg.title = `${p.name} · ${allocMin}分`;
+    if (i < idx) seg.classList.add('done');
+    if (i === idx) seg.classList.add('current');
+
+    let inner = '';
+    if (i === idx) {
+      inner += '<div class="segment-progress"></div>';
+    }
+    inner += `<span class="segment-label">${escapeHtml(p.name)}</span>`;
+    seg.innerHTML = inner;
+
+    if (i !== idx) {
+      seg.addEventListener('click', () => jumpToPhase(i));
+    }
+    segmentBarInner.appendChild(seg);
+  });
+}
+
+function updateSegmentBar() {
+  if (mode !== 'running') return;
+  const phases = getPhases();
+  const idx = actualPhaseIdx;
+  const phase = phases[idx];
+  const elapsed = getElapsedMs();
+  const timeOnPhase = Math.max(0, elapsed - (phaseAdvanceTimes[idx] ?? 0));
+  const phaseProgress = Math.min(1, timeOnPhase / phase.durationMs);
+  const over = timeOnPhase > phase.durationMs;
+
+  // segment fill within current segment
+  const segProgress = segmentBarInner.querySelector('.segment.current .segment-progress');
+  if (segProgress) {
+    segProgress.style.width = `${phaseProgress * 100}%`;
+    segProgress.classList.toggle('over', over);
+  }
+
+  // overall pointer position (% of total bar width)
+  const totalMin = activities.reduce((s, a) => s + a.minutes, 0);
+  const cumBeforeMin = activities.slice(0, idx).reduce((s, a) => s + a.minutes, 0);
+  const currentSegMin = Math.min(phase.durationMs, timeOnPhase) / 60_000;
+  const positionPct = Math.min(100, ((cumBeforeMin + currentSegMin) / totalMin) * 100);
+  nowPointer.style.left = `${positionPct}%`;
+  nowPointer.classList.toggle('over', over);
+
+  // position readout (e.g. "23 / 75 分")
+  const elapsedMin = elapsed / 60_000;
+  segmentBarPos.textContent = `${Math.floor(elapsedMin)} / ${totalMin} 分`;
+}
+
 function updateNowMarker() {
   if (mode !== 'running') return;
 
@@ -914,10 +1094,8 @@ function tick() {
   // ─ Section remaining ─
   remainingEl.textContent = formatDuration(sectionRemainMs);
   remainingEl.classList.remove('warn', 'over');
-  progressFill.classList.remove('over');
   if (sectionRemainMs < 0) {
     remainingEl.classList.add('over');
-    progressFill.classList.add('over');
   } else if (sectionRemainMs < 60_000) {
     remainingEl.classList.add('warn');
   }
@@ -932,10 +1110,6 @@ function tick() {
   } else if (totalRemainMs < 5 * 60_000) {
     totalRemainEl.classList.add('warn');
   }
-
-  // ─ Section progress bar (resets per phase) ─
-  const pct = Math.min(100, (timeOnPhase / phase.durationMs) * 100);
-  progressFill.style.width = pct + '%';
 
   // ─ Topbar status ─
   if (isPaused) {
@@ -955,14 +1129,16 @@ function tick() {
   // Pulse the next button when the current section is over its allocation
   nextBtn.classList.toggle('attention', sectionRemainMs < 0 && !isPaused && !nextBtn.disabled);
 
-  // ─ Re-render schedule blocks only when phase changes ─
+  // ─ Re-render schedule blocks and segment bar only when phase changes ─
   if (idx !== lastRenderedActualIdx) {
     renderSchedule(phases, idx);
+    renderSegmentBar(phases, idx);
     lastRenderedActualIdx = idx;
     lastScheduledIdx = -1;  // force scheduled-target re-apply on fresh blocks
   }
-  // ─ Update the "now" marker and scheduled-target every tick ─
+  // ─ Update the "now" marker, segment bar, and scheduled-target every tick ─
   updateNowMarker();
+  updateSegmentBar();
 }
 
 // ───── controls ─────
