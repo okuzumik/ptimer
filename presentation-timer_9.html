@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>プレゼンタイマー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0c0b0a;
+  --surface: #16140f;
+  --surface-elev: #1f1c16;
+  --border: #2a2620;
+  --border-soft: #1f1c16;
+  --text: #f5f1e8;
+  --text-2: #8a8478;
+  --text-3: #5a5650;
+  --accent: #d4a574;
+  --accent-bright: #e8b884;
+  --warn: #d97757;
+  --over: #e85a3a;
+  --ahead: #8eb0a6;
+  --ahead-soft: rgba(142, 176, 166, 0.12);
+
+  --font-jp: 'Zen Kaku Gothic New', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-en: 'Fraunces', Georgia, serif;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-jp);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(212, 165, 116, 0.07), transparent 70%),
+    url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.94 0 0 0 0 0.91 0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-attachment: fixed;
+}
+
+/* ───── top bar ───── */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--border-soft);
+}
+.brand {
+  font-family: var(--font-en); font-style: italic; font-weight: 400;
+  font-size: 0.95rem; color: var(--text-2); letter-spacing: 0.01em;
+}
+.brand .sep { color: var(--accent); margin: 0 0.6rem; font-style: normal; }
+.brand .status { font-family: var(--font-jp); font-style: normal; }
+.wall-clock {
+  font-family: var(--font-mono); font-size: 1rem; color: var(--text-2);
+  letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+}
+
+/* ───── setup ───── */
+.setup { max-width: 720px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+.setup h1 {
+  font-family: var(--font-jp); font-weight: 900;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 0.5rem;
+}
+.setup h1 em {
+  font-family: var(--font-en); font-style: italic; font-weight: 500;
+  color: var(--accent);
+}
+.setup .subtitle {
+  color: var(--text-2); margin-bottom: 3rem; font-size: 0.98rem;
+}
+
+.section-label {
+  font-family: var(--font-en); font-style: italic; font-weight: 400;
+  font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--text-3); margin-bottom: 0.85rem;
+  display: flex; align-items: center; gap: 0.85rem;
+}
+.section-label::before {
+  content: ""; display: block; width: 1.75rem; height: 1px;
+  background: var(--accent);
+}
+.section-label .jp {
+  font-family: var(--font-jp); font-style: normal;
+  letter-spacing: 0.05em; color: var(--text-2);
+}
+
+textarea.activities-input {
+  width: 100%; min-height: 200px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 3px; padding: 1.25rem 1.5rem;
+  color: var(--text); font-family: var(--font-jp);
+  font-size: 1rem; line-height: 1.7; resize: vertical;
+  transition: border-color 0.2s, background 0.2s;
+}
+textarea.activities-input:focus {
+  outline: none; border-color: var(--accent);
+  background: var(--surface-elev);
+}
+textarea.activities-input::placeholder { color: var(--text-3); }
+
+.activity-list { margin-top: 1.5rem; border-top: 1px solid var(--border-soft); }
+.activity-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto auto auto;
+  gap: 0.9rem; padding: 0.95rem 0;
+  border-bottom: 1px solid var(--border-soft);
+  align-items: center;
+}
+.activity-row .num {
+  font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-3);
+}
+.activity-row .name { font-size: 1.02rem; line-height: 1.4; }
+.minutes-input {
+  width: 4.5rem; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 0.55rem 0.75rem; color: var(--text);
+  font-family: var(--font-mono); font-size: 1rem;
+  text-align: right; -moz-appearance: textfield;
+}
+.minutes-input::-webkit-outer-spin-button,
+.minutes-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.minutes-input:focus { outline: none; border-color: var(--accent); }
+.unit { color: var(--text-2); font-size: 0.9rem; }
+.delete-btn {
+  background: transparent; border: none; color: var(--text-3);
+  cursor: pointer; font-size: 1.3rem; padding: 0.25rem 0.5rem;
+  transition: color 0.2s; line-height: 1;
+}
+.delete-btn:hover { color: var(--warn); }
+
+.total-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-top: 1.5rem; padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+.total-label {
+  font-family: var(--font-en); font-style: italic;
+  color: var(--text-2); font-size: 0.95rem;
+}
+.total-value {
+  font-family: var(--font-mono); font-size: 1.4rem; color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ───── primary button ───── */
+.btn-primary {
+  display: block; width: 100%;
+  margin-top: 2.5rem; padding: 1.15rem;
+  background: var(--accent); border: none; border-radius: 3px;
+  color: #1a1612; font-family: var(--font-jp); font-weight: 700;
+  font-size: 1.05rem; letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.05s, opacity 0.15s;
+  touch-action: manipulation;
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-bright); }
+.btn-primary:active:not(:disabled) { transform: translateY(1px); }
+.btn-primary:disabled {
+  background: var(--border); color: var(--text-3); cursor: not-allowed;
+}
+
+/* ───── running screen ───── */
+.running { display: none; min-height: 100vh; padding: 0 2rem 2.5rem; }
+.running.active { display: flex; flex-direction: column; }
+
+.current-phase { text-align: center; padding: 3rem 1rem 1.5rem; }
+.phase-meta {
+  font-family: var(--font-en); font-style: italic;
+  font-size: 0.82rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-3); margin-bottom: 1rem;
+}
+.phase-meta .phase-counter {
+  color: var(--accent); font-style: normal;
+  font-family: var(--font-mono); font-weight: 400;
+}
+.phase-meta .sep { color: var(--text-3); margin: 0 0.6rem; font-style: normal; }
+.phase-meta .jp { font-family: var(--font-jp); font-style: normal; letter-spacing: 0.08em; }
+
+.phase-name {
+  font-family: var(--font-jp); font-weight: 700;
+  font-size: clamp(1.8rem, 5.5vw, 3rem);
+  letter-spacing: -0.02em; line-height: 1.2;
+  margin-bottom: 1.75rem; color: var(--text);
+  word-break: break-word;
+}
+
+.delta-badge {
+  display: inline-flex; align-items: baseline; gap: 0.6rem;
+  margin: -0.75rem auto 1.75rem;
+  padding: 0.4rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  transition: color 0.3s, border-color 0.3s, background 0.3s;
+}
+.delta-badge.ahead {
+  color: var(--ahead);
+  border-color: rgba(142, 176, 166, 0.35);
+  background: var(--ahead-soft);
+}
+.delta-badge.behind {
+  color: var(--warn);
+  border-color: rgba(217, 119, 87, 0.35);
+  background: rgba(217, 119, 87, 0.06);
+}
+.delta-badge .jp {
+  font-family: var(--font-jp); font-size: 0.88rem;
+  letter-spacing: 0.05em; opacity: 0.9;
+}
+
+.time-readouts {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: clamp(1.5rem, 6vw, 5rem);
+  flex-wrap: wrap;
+}
+.readout { text-align: center; }
+.readout-value {
+  font-family: var(--font-mono); font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  line-height: 1; letter-spacing: -0.04em;
+  transition: color 0.3s;
+}
+.readout.primary .readout-value {
+  font-size: clamp(4.5rem, 16vw, 9rem);
+  color: var(--accent);
+}
+.readout.secondary .readout-value {
+  font-size: clamp(2.5rem, 8vw, 4.25rem);
+  color: var(--text);
+  opacity: 0.82;
+}
+.readout-value.warn { color: var(--warn); opacity: 1; }
+.readout-value.over { color: var(--over); opacity: 1; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.readout-label {
+  font-family: var(--font-en); font-style: italic;
+  font-size: 0.82rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-3); margin-top: 0.85rem;
+}
+.readout-label .jp { font-family: var(--font-jp); font-style: normal; letter-spacing: 0.08em; }
+.readout.secondary .readout-label { margin-top: 0.6rem; font-size: 0.78rem; }
+
+.progress-track {
+  margin: 2rem auto 0; max-width: 560px;
+  height: 2px; background: var(--border); border-radius: 1px;
+  overflow: hidden; position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+  transition: width 0.5s linear;
+}
+.progress-fill.over { background: var(--over); }
+
+/* ───── schedule ───── */
+.schedule {
+  max-width: 720px; margin: 2.5rem auto 0; width: 100%;
+}
+.schedule .section-label { margin-bottom: 0.5rem; }
+.timeline-block {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: 0.9rem; padding: 0.85rem 1rem;
+  background: var(--surface-elev);
+  border-radius: 3px;
+  align-items: start;
+  overflow: hidden;
+  transition: opacity 0.3s, background 0.3s;
+}
+.timeline-block + .timeline-block { margin-top: 4px; }
+
+.timeline-block.done { opacity: 0.45; }
+
+.timeline-block.current {
+  background:
+    linear-gradient(90deg,
+      rgba(212,165,116,0.08) 0%,
+      rgba(212,165,116,0.025) 50%,
+      transparent 100%),
+    var(--surface-elev);
+}
+.timeline-block.current::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  z-index: 2;
+}
+
+/* progress fill from top of current block down to "now" — the bottom edge IS the now line */
+.timeline-block .progress-fill-overlay {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  background: linear-gradient(180deg,
+    rgba(212,165,116,0.13),
+    rgba(212,165,116,0.04));
+  border-bottom: 1.5px solid var(--accent-bright);
+  box-shadow: 0 1px 10px rgba(232, 184, 132, 0.35);
+  pointer-events: none;
+  z-index: 0;
+  transition: height 0.25s linear;
+}
+.timeline-block .progress-fill-overlay::after {
+  content: "";
+  position: absolute;
+  right: 0.5rem; bottom: -3.5px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent-bright);
+  box-shadow: 0 0 8px rgba(232, 184, 132, 0.9);
+  z-index: 1;
+}
+.timeline-block .progress-fill-overlay.over {
+  background: linear-gradient(180deg,
+    rgba(232,90,58,0.18),
+    rgba(232,90,58,0.06));
+  border-bottom-color: var(--over);
+  box-shadow: 0 1px 10px rgba(232, 90, 58, 0.4);
+}
+.timeline-block .progress-fill-overlay.over::after {
+  background: var(--over);
+  box-shadow: 0 0 8px rgba(232, 90, 58, 0.9);
+}
+
+.timeline-block > .marker,
+.timeline-block > .item-name,
+.timeline-block > .item-meta {
+  position: relative;
+  z-index: 2;
+}
+.timeline-block .marker {
+  font-family: var(--font-mono); font-size: 0.82rem;
+  color: var(--text-3); text-align: center;
+}
+.timeline-block .item-name {
+  color: var(--text); font-size: 0.98rem; line-height: 1.4;
+}
+.timeline-block .item-meta {
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 0.15rem;
+}
+.timeline-block .item-alloc {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  color: var(--text-3); font-size: 0.8rem;
+}
+.timeline-block .item-time {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  color: var(--text-2); font-size: 0.86rem; letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.timeline-block.done .marker { color: var(--text-3); }
+.timeline-block.current .marker { color: var(--accent); }
+.timeline-block.current .item-name { color: var(--accent-bright); font-weight: 500; }
+.timeline-block.current .item-alloc { color: var(--accent); opacity: 0.75; }
+.timeline-block.current .item-time { color: var(--accent); }
+
+/* ───── controls ───── */
+.controls {
+  display: flex; flex-direction: column;
+  gap: 0.6rem; align-items: stretch;
+  max-width: 32rem; margin: 2.5rem auto 0;
+}
+.controls-row { display: flex; gap: 0.6rem; }
+.controls-row .btn-ctrl { flex: 1; }
+.btn-ctrl {
+  padding: 0.95rem 1.4rem;
+  background: var(--surface-elev); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--font-jp); font-size: 0.98rem;
+  border-radius: 3px; cursor: pointer;
+  transition: all 0.15s; touch-action: manipulation;
+  letter-spacing: 0.04em;
+}
+.btn-ctrl:hover:not(:disabled) {
+  border-color: var(--accent); color: var(--accent);
+}
+.btn-ctrl:active:not(:disabled) { transform: translateY(1px); }
+.btn-ctrl:disabled {
+  opacity: 0.35; cursor: not-allowed;
+}
+.btn-ctrl.primary {
+  background: var(--accent); border-color: var(--accent); color: #1a1612;
+  font-weight: 700;
+}
+.btn-ctrl.primary:hover:not(:disabled) { background: var(--accent-bright); color: #1a1612; }
+.btn-ctrl.large {
+  padding: 1.25rem; font-size: 1.1rem; letter-spacing: 0.08em;
+}
+.btn-ctrl.danger {
+  border-color: var(--border);
+  color: var(--text-2);
+}
+.btn-ctrl.danger:hover:not(:disabled) { border-color: var(--warn); color: var(--warn); }
+
+/* ───── responsive ───── */
+@media (max-width: 700px) {
+  .setup { padding: 2rem 1.25rem 4rem; }
+  .topbar { padding: 1rem 1.25rem; }
+  .running { padding: 0 1.25rem 1.5rem; }
+  .current-phase { padding: 2rem 0.5rem 1rem; }
+  .btn-ctrl { padding: 0.85rem 0.9rem; font-size: 0.95rem; }
+  .btn-ctrl.large { padding: 1.1rem; font-size: 1.05rem; }
+  .timeline-block { padding: 0.85rem 0.7rem; gap: 0.7rem; }
+  .timeline-block { grid-template-columns: 1.5rem 1fr auto; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .current-phase { padding: 1.5rem 1rem 1rem; }
+  .topbar { padding: 0.75rem 1.5rem; }
+  .schedule { margin-top: 1.25rem; }
+  .controls { margin-top: 1.5rem; }
+}
+
+/* hide default browser UI bits */
+input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span>Presentation Timer</span>
+    <span class="sep">·</span>
+    <span class="status" id="phase-status">準備中</span>
+  </div>
+  <div class="wall-clock" id="wall-clock">--:--:--</div>
+</div>
+
+<!-- ───── SETUP SCREEN ───── -->
+<main class="setup" id="setup-screen">
+  <h1>講演の<em>時間設計</em></h1>
+  <p class="subtitle">話す内容を貼り付け、各セクションに時間を割り当ててください</p>
+
+  <div class="section-label">Outline <span class="jp">— 活動を貼り付け</span></div>
+  <textarea class="activities-input" id="activities-text" placeholder="例:&#10;- 自己紹介と問題意識&#10;- 先行研究のレビュー&#10;- 本研究の方法&#10;- 結果と考察&#10;- 質疑応答"></textarea>
+
+  <div id="activity-list-wrapper" style="display: none;">
+    <div class="section-label" style="margin-top: 2.25rem;">Allocation <span class="jp">— 時間配分</span></div>
+    <div class="activity-list" id="activity-list"></div>
+    <div class="total-row">
+      <span class="total-label">Total</span>
+      <span class="total-value" id="total-time">0 分</span>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="start-btn" disabled>開始</button>
+</main>
+
+<!-- ───── RUNNING SCREEN ───── -->
+<main class="running" id="running-screen">
+  <div class="current-phase">
+    <div class="phase-meta">
+      <span class="phase-counter" id="phase-counter">PHASE 01 / 01</span>
+      <span class="sep">·</span>
+      <span class="jp">現在の活動</span>
+    </div>
+    <div class="phase-name" id="current-name">—</div>
+    <div class="delta-badge" id="delta-badge">予定通り</div>
+
+    <div class="time-readouts">
+      <div class="readout primary">
+        <div class="readout-value" id="remaining">00:00</div>
+        <div class="readout-label"><span class="jp">セクション残り</span></div>
+      </div>
+      <div class="readout secondary">
+        <div class="readout-value" id="total-remaining">00:00</div>
+        <div class="readout-label"><span class="jp">全体残り</span></div>
+      </div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+    </div>
+  </div>
+
+  <div class="schedule">
+    <div class="section-label">Schedule <span class="jp">— 全体の流れ</span></div>
+    <div id="schedule-list"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-ctrl primary large" id="next-btn">次へ進む</button>
+    <div class="controls-row">
+      <button class="btn-ctrl" id="prev-btn">前へ戻る</button>
+      <button class="btn-ctrl" id="pause-btn">一時停止</button>
+      <button class="btn-ctrl danger" id="reset-btn">設定に戻る</button>
+    </div>
+  </div>
+</main>
+
+<script>
+// ───── State ─────
+let activities = [];           // [{name, minutes}]
+let mode = 'setup';            // 'setup' | 'running'
+let startTime = null;          // ms epoch
+let isPaused = false;
+let pausedAt = null;
+let totalPauseMs = 0;
+let wakeLock = null;
+let lastRenderedActualIdx = -1;
+let actualPhaseIdx = 0;            // user's actual current phase
+let phaseAdvanceTimes = [];        // elapsed ms at which each phase was advanced to
+
+// ───── DOM ─────
+const $ = (id) => document.getElementById(id);
+const textarea     = $('activities-text');
+const listWrap     = $('activity-list-wrapper');
+const listEl       = $('activity-list');
+const totalEl      = $('total-time');
+const startBtn     = $('start-btn');
+const setupScreen  = $('setup-screen');
+const runScreen    = $('running-screen');
+const wallClock    = $('wall-clock');
+const phaseStatus  = $('phase-status');
+const remainingEl   = $('remaining');
+const totalRemainEl = $('total-remaining');
+const progressFill  = $('progress-fill');
+const phaseCounter = $('phase-counter');
+const currentName  = $('current-name');
+const deltaBadge   = $('delta-badge');
+const scheduleList = $('schedule-list');
+const pauseBtn     = $('pause-btn');
+const nextBtn      = $('next-btn');
+const prevBtn      = $('prev-btn');
+
+// ───── parsing ─────
+function parseActivities(text) {
+  return text.split('\n')
+    .map(line => line
+      .replace(/^\s*(?:[-*・●○■□▪▫►▶◆◇\u2022]|\d+\s*[.)])\s*/, '')
+      .trim())
+    .filter(line => line.length > 0);
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ───── setup rendering ─────
+function syncActivitiesFromText() {
+  const parsed = parseActivities(textarea.value);
+  const byName = new Map(activities.map(a => [a.name, a.minutes]));
+  activities = parsed.map((name, i) => ({
+    name,
+    minutes: byName.get(name) ?? activities[i]?.minutes ?? 5
+  }));
+  renderActivities();
+}
+
+function renderActivities() {
+  listEl.innerHTML = '';
+  if (activities.length === 0) {
+    listWrap.style.display = 'none';
+    startBtn.disabled = true;
+    return;
+  }
+  listWrap.style.display = 'block';
+  activities.forEach((act, idx) => {
+    const row = document.createElement('div');
+    row.className = 'activity-row';
+    row.innerHTML = `
+      <span class="num">${String(idx+1).padStart(2,'0')}</span>
+      <span class="name">${escapeHtml(act.name)}</span>
+      <input type="number" class="minutes-input" min="0" step="1" value="${act.minutes}" data-idx="${idx}" inputmode="numeric">
+      <span class="unit">分</span>
+      <button class="delete-btn" data-idx="${idx}" title="削除">×</button>
+    `;
+    listEl.appendChild(row);
+  });
+  listEl.querySelectorAll('.minutes-input').forEach(input => {
+    input.addEventListener('input', (e) => {
+      const i = parseInt(e.target.dataset.idx, 10);
+      activities[i].minutes = Math.max(0, parseInt(e.target.value, 10) || 0);
+      updateTotal();
+    });
+  });
+  listEl.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const i = parseInt(e.currentTarget.dataset.idx, 10);
+      activities.splice(i, 1);
+      // also reflect in textarea
+      textarea.value = activities.map(a => '- ' + a.name).join('\n');
+      renderActivities();
+    });
+  });
+  updateTotal();
+}
+
+function updateTotal() {
+  const total = activities.reduce((s, a) => s + a.minutes, 0);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  totalEl.textContent = h > 0 ? `${h} 時間 ${String(m).padStart(2,'0')} 分` : `${m} 分`;
+  startBtn.disabled = !(activities.length > 0 && activities.every(a => a.minutes > 0));
+}
+
+textarea.addEventListener('input', syncActivitiesFromText);
+
+// ───── timing core ─────
+function getPhases() {
+  let cumMs = 0;
+  return activities.map(a => {
+    const startMs = cumMs;
+    cumMs += a.minutes * 60_000;
+    return { name: a.name, startMs, endMs: cumMs, durationMs: a.minutes * 60_000 };
+  });
+}
+
+function effectiveNow() {
+  return isPaused ? pausedAt : Date.now();
+}
+
+// pause time that's accumulated, including in-progress pause
+function pauseAccum() {
+  return totalPauseMs + (isPaused ? Date.now() - pausedAt : 0);
+}
+
+function getElapsedMs() {
+  if (startTime == null) return 0;
+  return effectiveNow() - startTime - totalPauseMs;
+}
+
+// absolute wall-clock time at which a given schedule-elapsed point occurs
+function getAbsoluteTime(phaseMs) {
+  return new Date(startTime + pauseAccum() + phaseMs);
+}
+
+function currentPhaseIndex(phases, elapsed) {
+  if (elapsed < 0) return 0;
+  for (let i = 0; i < phases.length; i++) {
+    if (elapsed < phases[i].endMs) return i;
+  }
+  return phases.length - 1;
+}
+
+function formatHM(date) {
+  const h = date.getHours();
+  const m = date.getMinutes();
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function formatHMS(date) {
+  return `${formatHM(date)}:${String(date.getSeconds()).padStart(2,'0')}`;
+}
+
+function formatDuration(ms) {
+  const negative = ms < 0;
+  const abs = Math.ceil(Math.abs(ms) / 1000);
+  const h = Math.floor(abs / 3600);
+  const m = Math.floor((abs % 3600) / 60);
+  const s = abs % 60;
+  let body;
+  if (h > 0) {
+    body = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  } else {
+    body = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  }
+  return (negative ? '+' : '') + body;
+}
+
+// Format the schedule delta: positive = ahead, negative = behind
+function formatDelta(deltaMs) {
+  if (Math.abs(deltaMs) < 30_000) {
+    return { value: '予定通り', label: '', cls: '', isJpOnly: true };
+  }
+  const ahead = deltaMs > 0;
+  const abs = Math.floor(Math.abs(deltaMs) / 1000);
+  const m = Math.floor(abs / 60);
+  const s = abs % 60;
+  const sign = ahead ? '+' : '-';
+  const value = `${sign}${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return {
+    value,
+    label: ahead ? '早い' : '遅れ',
+    cls: ahead ? 'ahead' : 'behind',
+    isJpOnly: false
+  };
+}
+
+// ───── rendering: running screen ─────
+function renderSchedule(phases, idx) {
+  scheduleList.innerHTML = '';
+
+  // scale height to allocated minutes, fitting roughly within a target range
+  const totalMin = activities.reduce((s, a) => s + a.minutes, 0);
+  const TARGET_TOTAL = 680;
+  const pxPerMin = Math.min(14, Math.max(7, TARGET_TOTAL / Math.max(totalMin, 1)));
+  const MIN_HEIGHT = 52;
+
+  phases.forEach((p, i) => {
+    const start = getAbsoluteTime(p.startMs);
+    const end = getAbsoluteTime(p.endMs);
+    const allocMin = activities[i].minutes;
+    const blockHeight = Math.max(MIN_HEIGHT, allocMin * pxPerMin);
+
+    const block = document.createElement('div');
+    block.className = 'timeline-block';
+    block.style.minHeight = blockHeight + 'px';
+    if (i < idx) block.classList.add('done');
+    if (i === idx) block.classList.add('current');
+
+    const marker = i < idx ? '✓' : (i === idx ? '▶' : String(i+1).padStart(2,'0'));
+
+    let inner = '';
+    if (i === idx) {
+      inner += '<div class="progress-fill-overlay"></div>';
+    }
+    inner += `
+      <span class="marker">${marker}</span>
+      <span class="item-name">${escapeHtml(p.name)}</span>
+      <span class="item-meta">
+        <span class="item-alloc">${allocMin}分</span>
+        <span class="item-time">${formatHM(start)} → ${formatHM(end)}</span>
+      </span>
+    `;
+    block.innerHTML = inner;
+    scheduleList.appendChild(block);
+  });
+}
+
+function updateNowMarker() {
+  if (mode !== 'running') return;
+  const overlay = scheduleList.querySelector('.timeline-block.current .progress-fill-overlay');
+  if (!overlay) return;
+
+  const phases = getPhases();
+  const idx = actualPhaseIdx;
+  const phase = phases[idx];
+  const elapsed = getElapsedMs();
+  const timeOnPhase = Math.max(0, elapsed - (phaseAdvanceTimes[idx] ?? 0));
+  const progress = Math.min(1, timeOnPhase / phase.durationMs);
+  const over = timeOnPhase > phase.durationMs;
+
+  overlay.style.height = `${progress * 100}%`;
+  overlay.classList.toggle('over', over);
+}
+
+function tick() {
+  // wall clock always
+  wallClock.textContent = formatHMS(new Date());
+
+  if (mode !== 'running') return;
+
+  const phases = getPhases();
+  const elapsed = getElapsedMs();
+
+  // ─ Actual (user-controlled) phase ─
+  const idx = actualPhaseIdx;
+  const phase = phases[idx];
+  const phaseStartElapsed = phaseAdvanceTimes[idx] ?? 0;
+  const timeOnPhase = Math.max(0, elapsed - phaseStartElapsed);
+  const sectionRemainMs = phase.durationMs - timeOnPhase;
+
+  // ─ Schedule delta (positive = ahead of plan, negative = behind) ─
+  // actual position in the schedule timeline:
+  //   phase start + however far into this phase we are (capped at allocated)
+  const actualPosition = phase.startMs + Math.min(phase.durationMs, timeOnPhase);
+  const deltaMs = actualPosition - elapsed;
+
+  // ─ Headline labels ─
+  phaseCounter.textContent =
+    `PHASE ${String(idx+1).padStart(2,'0')} / ${String(phases.length).padStart(2,'0')}`;
+  currentName.textContent = phase.name;
+
+  // ─ Delta badge ─
+  const d = formatDelta(deltaMs);
+  if (d.isJpOnly) {
+    deltaBadge.innerHTML = `<span class="jp">${d.value}</span>`;
+  } else {
+    deltaBadge.innerHTML = `${d.value}<span class="jp">${d.label}</span>`;
+  }
+  deltaBadge.classList.remove('ahead', 'behind');
+  if (d.cls) deltaBadge.classList.add(d.cls);
+
+  // ─ Section remaining ─
+  remainingEl.textContent = formatDuration(sectionRemainMs);
+  remainingEl.classList.remove('warn', 'over');
+  progressFill.classList.remove('over');
+  if (sectionRemainMs < 0) {
+    remainingEl.classList.add('over');
+    progressFill.classList.add('over');
+  } else if (sectionRemainMs < 60_000) {
+    remainingEl.classList.add('warn');
+  }
+
+  // ─ Total remaining (planned budget minus elapsed wall time) ─
+  const totalEndMs = phases[phases.length - 1].endMs;
+  const totalRemainMs = totalEndMs - elapsed;
+  totalRemainEl.textContent = formatDuration(totalRemainMs);
+  totalRemainEl.classList.remove('warn', 'over');
+  if (totalRemainMs < 0) {
+    totalRemainEl.classList.add('over');
+  } else if (totalRemainMs < 5 * 60_000) {
+    totalRemainEl.classList.add('warn');
+  }
+
+  // ─ Section progress bar (resets per phase) ─
+  const pct = Math.min(100, (timeOnPhase / phase.durationMs) * 100);
+  progressFill.style.width = pct + '%';
+
+  // ─ Topbar status ─
+  if (isPaused) {
+    phaseStatus.textContent = '一時停止中';
+  } else if (d.cls === 'behind') {
+    phaseStatus.textContent = `遅れ ${idx+1}/${phases.length}`;
+  } else if (d.cls === 'ahead') {
+    phaseStatus.textContent = `先行 ${idx+1}/${phases.length}`;
+  } else {
+    phaseStatus.textContent = `進行中 ${idx+1}/${phases.length}`;
+  }
+
+  // ─ Button state ─
+  nextBtn.disabled = idx >= phases.length - 1;
+  prevBtn.disabled = idx <= 0;
+  nextBtn.textContent = (idx >= phases.length - 1) ? '最後のセクション' : '次へ進む';
+
+  // ─ Re-render schedule blocks only when phase changes ─
+  if (idx !== lastRenderedActualIdx) {
+    renderSchedule(phases, idx);
+    lastRenderedActualIdx = idx;
+  }
+  // ─ Update the "now" marker position every tick ─
+  updateNowMarker();
+}
+
+// ───── controls ─────
+startBtn.addEventListener('click', () => {
+  if (startBtn.disabled) return;
+  startTime = Date.now();
+  totalPauseMs = 0;
+  isPaused = false;
+  pausedAt = null;
+  mode = 'running';
+  actualPhaseIdx = 0;
+  phaseAdvanceTimes = [0];
+  lastRenderedActualIdx = -1;
+  setupScreen.style.display = 'none';
+  runScreen.classList.add('active');
+  pauseBtn.textContent = '一時停止';
+  tick();
+  requestWakeLock();
+});
+
+$('reset-btn').addEventListener('click', () => {
+  if (!confirm('設定画面に戻ります。タイマーはリセットされます。よろしいですか?')) return;
+  mode = 'setup';
+  startTime = null;
+  isPaused = false;
+  pausedAt = null;
+  totalPauseMs = 0;
+  actualPhaseIdx = 0;
+  phaseAdvanceTimes = [];
+  runScreen.classList.remove('active');
+  setupScreen.style.display = 'block';
+  phaseStatus.textContent = '準備中';
+  releaseWakeLock();
+});
+
+pauseBtn.addEventListener('click', () => {
+  if (mode !== 'running') return;
+  if (isPaused) {
+    totalPauseMs += Date.now() - pausedAt;
+    isPaused = false;
+    pausedAt = null;
+    pauseBtn.textContent = '一時停止';
+    lastRenderedActualIdx = -1;  // force re-render to update absolute times shifted by pause
+  } else {
+    pausedAt = Date.now();
+    isPaused = true;
+    pauseBtn.textContent = '再開';
+  }
+  tick();
+});
+
+nextBtn.addEventListener('click', () => {
+  if (mode !== 'running') return;
+  const phases = getPhases();
+  if (actualPhaseIdx >= phases.length - 1) return;
+  actualPhaseIdx++;
+  phaseAdvanceTimes[actualPhaseIdx] = getElapsedMs();
+  lastRenderedActualIdx = -1;
+  tick();
+});
+
+prevBtn.addEventListener('click', () => {
+  if (mode !== 'running') return;
+  if (actualPhaseIdx <= 0) return;
+  phaseAdvanceTimes.pop();
+  actualPhaseIdx--;
+  lastRenderedActualIdx = -1;
+  tick();
+});
+
+// ───── Wake Lock (keeps iPad screen on) ─────
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch { /* ignore */ }
+}
+function releaseWakeLock() {
+  if (wakeLock) {
+    wakeLock.release().catch(() => {});
+    wakeLock = null;
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && mode === 'running') {
+    requestWakeLock();
+  }
+});
+
+// ───── go ─────
+setInterval(tick, 250);
+tick();
+</script>
+</body>
+</html>
